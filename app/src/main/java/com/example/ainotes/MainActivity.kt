@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AINotesTheme {
-                RecordTranscribeScreen()
+                SplashScreen()
             }
         }
     }
