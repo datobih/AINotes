@@ -13,7 +13,7 @@ import androidx.navigation.NavOptions
  */
 interface BasicNavigationActions {
     fun navigateToHome()
-    fun navigateToSplash()
+    fun navigateToOnboarding()
     fun navigateBack(): Boolean
     fun navigateUp(): Boolean
 }
@@ -51,12 +51,12 @@ class NavigationActionsImpl(
     // Basic Navigation Actions
     override fun navigateToHome() {
         navController.navigate(NavigationDestinations.Home.route) {
-            popUpTo(NavigationDestinations.Splash.route) { inclusive = true }
+            popUpTo(NavigationDestinations.Onboarding.route) { inclusive = true }
         }
     }
 
-    override fun navigateToSplash() {
-        navController.navigate(NavigationDestinations.Splash.route) {
+    override fun navigateToOnboarding() {
+        navController.navigate(NavigationDestinations.Onboarding.route) {
             popUpTo(0) { inclusive = true }
         }
     }

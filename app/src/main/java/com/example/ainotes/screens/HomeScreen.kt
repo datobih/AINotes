@@ -38,7 +38,7 @@ private fun HomeScreenPreview() {
         HomeScreen(
             navigationActions = object : NavigationActions {
                 override fun navigateToHome() {}
-                override fun navigateToSplash() {}
+                override fun navigateToOnboarding() {}
                 override fun navigateBack(): Boolean = false
                 override fun navigateUp(): Boolean = false
                 override fun navigateToNoteEditor(noteId: String?) {}

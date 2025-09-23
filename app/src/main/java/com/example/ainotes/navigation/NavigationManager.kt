@@ -37,7 +37,7 @@ class NavigationManager(
     fun navigateToDestination(destination: NavigationDestinations) {
         if (currentRoute != destination.route) {
             when (destination) {
-                is NavigationDestinations.Splash -> navigationActions.navigateToSplash()
+                is NavigationDestinations.Onboarding -> navigationActions.navigateToOnboarding()
                 is NavigationDestinations.Home -> navigationActions.navigateToHome()
                 is NavigationDestinations.NoteEditor -> navigationActions.navigateToNoteEditor()
                 is NavigationDestinations.Settings -> navigationActions.navigateToSettings()
@@ -92,7 +92,7 @@ fun rememberNavigationManager(
 @Composable
 fun AINotesNavigationSetup(
     navigationManager: NavigationManager = rememberNavigationManager(),
-    startDestination: String = NavigationDestinations.Splash.route
+    startDestination: String = NavigationDestinations.Onboarding.route
 ) {
     val navController = navigationManager.navController
     val navigationActions = navigationManager.navigationActions
@@ -130,7 +130,7 @@ fun NavigationManager.getNavigationState(): NavigationState {
  * Follows Single Responsibility Principle by only handling configuration
  */
 data class NavigationConfig(
-    val startDestination: String = NavigationDestinations.Splash.route,
+    val startDestination: String = NavigationDestinations.Onboarding.route,
     val enableDeepLinks: Boolean = true,
     val enableBackGesture: Boolean = true,
     val popUpToSaveState: Boolean = true,

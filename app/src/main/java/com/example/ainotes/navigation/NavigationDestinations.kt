@@ -11,9 +11,9 @@ package com.example.ainotes.navigation
 sealed class NavigationDestinations(val route: String) {
     
     /**
-     * Splash screen destination - entry point of the application
+     * Onboarding screen destination - entry point of the application
      */
-    data object Splash : NavigationDestinations("splash")
+    data object Onboarding : NavigationDestinations("onboarding")
     
     /**
      * Home screen destination - main dashboard/notes list
@@ -63,7 +63,7 @@ sealed class NavigationDestinations(val route: String) {
  */
 fun NavigationDestinations.Companion.getAllDestinations(): List<NavigationDestinations> {
     return listOf(
-        NavigationDestinations.Splash,
+        NavigationDestinations.Onboarding,
         NavigationDestinations.Home,
         NavigationDestinations.NoteEditor,
         NavigationDestinations.NoteDetails,

@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-import com.example.ainotes.SplashScreen
+import com.example.ainotes.OnboardingScreen
 import com.example.ainotes.screens.HomeScreen
 
 /**
@@ -27,15 +27,15 @@ import com.example.ainotes.screens.HomeScreen
 fun AINotesNavGraph(
     navController: NavHostController,
     navigationActions: NavigationActions,
-    startDestination: String = NavigationDestinations.Splash.route
+    startDestination: String = NavigationDestinations.Onboarding.route
 ) {
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
-        // Splash Screen
-        composable(route = NavigationDestinations.Splash.route) {
-            SplashScreen(
+        // Onboarding Screen
+        composable(route = NavigationDestinations.Onboarding.route) {
+            OnboardingScreen(
                 onGetStartedClick = {
                     navigationActions.navigateToHome()
                 }
@@ -108,7 +108,7 @@ fun AINotesNavGraph(
 fun AINotesNavGraph(
     navController: NavHostController,
     navigationActions: NavigationActions,
-    startDestination: String = NavigationDestinations.Splash.route,
+    startDestination: String = NavigationDestinations.Onboarding.route,
     additionalDestinations: @Composable (NavigationActions) -> Unit = {}
 ) {
     NavHost(
@@ -116,8 +116,8 @@ fun AINotesNavGraph(
         startDestination = startDestination
     ) {
         // Core destinations (same as above)
-        composable(route = NavigationDestinations.Splash.route) {
-            SplashScreen(
+        composable(route = NavigationDestinations.Onboarding.route) {
+            OnboardingScreen(
                 onGetStartedClick = {
                     navigationActions.navigateToHome()
                 }
