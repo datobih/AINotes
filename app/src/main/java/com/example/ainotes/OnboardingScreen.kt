@@ -291,32 +291,32 @@ private fun WelcomeOnboardingContent(
             }
         } else {
             // Portrait layout
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = horizontalPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                item {
+
                     Spacer(modifier = Modifier.height(if (isTablet) 48.dp else 32.dp))
                     
                     // Phone mockup
                     PhoneMockup(
                         modifier = Modifier.size(if (isTablet) 240.dp else 200.dp)
                     )
-                }
+
                 
-                item {
+
                     WelcomeContent(
                         isCompact = false,
                         onGetStartedClick = onGetStartedClick
                     )
-                }
+
                 
-                item {
+
                     Spacer(modifier = Modifier.height(32.dp))
-                }
+
             }
         }
     }
