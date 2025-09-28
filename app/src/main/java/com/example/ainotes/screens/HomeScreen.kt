@@ -28,18 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ainotes.data.Note
 import com.example.ainotes.navigation.NavigationActions
 import com.example.ainotes.ui.theme.*
-
-// Data classes for the notes
-data class Note(
-    val id: String,
-    val title: String,
-    val content: String,
-    val timestamp: String,
-    val isStarred: Boolean = false,
-    val isAiSummarized: Boolean = false
-)
 
 // Sample data
 private val sampleNotes = listOf(
@@ -171,13 +162,10 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Search Bar
-            SearchBar(
-                query = uiState.searchText,
-                onQueryChange = { viewModel.updateSearchText(it) },
-                onSearch = { /* Handle search */ },
-                active = false,
-                onActiveChange = { /* Handle active change */ },
+            // Search Bar - Using OutlinedTextField instead of SearchBar to avoid overlap issues
+            OutlinedTextField(
+                value = uiState.searchText,
+                onValueChange = { viewModel.updateSearchText(it) },
                 placeholder = {
                     Text(
                         text = "Search notes",
@@ -192,22 +180,23 @@ fun HomeScreen(
                         tint = LightGrayText
                     )
                 },
-                colors = SearchBarDefaults.colors(
-                    containerColor = Color(0xFF2D3748),
-                    inputFieldColors = TextFieldDefaults.colors(
-                        focusedTextColor = WhiteText,
-                        unfocusedTextColor = WhiteText,
-                        cursorColor = BlueAccent
-                    )
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF2D3748),
+                    unfocusedContainerColor = Color(0xFF2D3748),
+                    focusedTextColor = WhiteText,
+                    unfocusedTextColor = WhiteText,
+                    cursorColor = BlueAccent,
+                    focusedBorderColor = BlueAccent,
+                    unfocusedBorderColor = Color.Transparent
                 ),
+                shape = RoundedCornerShape(28.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(if (isTablet) 64.dp else 56.dp)
-            ) {
-                // Search results would go here
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
+                    .height(if (isTablet) 64.dp else 56.dp),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 28.dp))
             
             // Filter Tabs
             LazyRow(
@@ -347,12 +336,211 @@ private fun NoteCard(
     }
 }
 
-@Preview(showBackground = true)
+// Mock ViewModels and data for previews
+private val mockRepository = object : com.example.ainotes.data.repository.NotesRepository {
+    override fun getAllNotes() = kotlinx.coroutines.flow.flowOf(sampleNotes)
+    override suspend fun getNoteById(id: String) = sampleNotes.find { it.id == id }
+    override suspend fun insertNote(note: Note) {}
+    override suspend fun deleteNote(id: String) {}
+    override suspend fun updateNote(note: Note) {}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PreviewHomeScreen(
+    navigationActions: NavigationActions,
+    isTablet: Boolean = false
+) {
+    val mockUiState = remember { 
+        mutableStateOf(
+            HomeUiState(
+                notes = sampleNotes,
+                selectedTab = FilterTab.ALL,
+                searchText = "",
+                isLoading = false
+            )
+        )
+    }
+    
+    // Create preview version of HomeScreen with manual state management
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+    
+    // Responsive design values
+    val actualIsTablet = isTablet || screenWidth >= 600.dp
+    val isLandscape = screenWidth > screenHeight
+    
+    val horizontalPadding = when {
+        actualIsTablet -> if (isLandscape) screenWidth * 0.12f else screenWidth * 0.08f
+        screenWidth >= 480.dp -> 24.dp
+        else -> 16.dp
+    }
+    
+    val titleFontSize = when {
+        actualIsTablet -> 32.sp
+        screenWidth >= 480.dp -> 28.sp
+        else -> 24.sp
+    }
+    
+    // Filter notes based on selected tab
+    val filteredNotes = when (mockUiState.value.selectedTab) {
+        FilterTab.ALL -> mockUiState.value.notes
+        FilterTab.STARRED -> mockUiState.value.notes.filter { it.isStarred }
+        FilterTab.AI_SUMMARIZED -> mockUiState.value.notes.filter { it.isAiSummarized }
+    }
+    
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkNavyBackground),
+        containerColor = DarkNavyBackground,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Notes",
+                        fontSize = titleFontSize,
+                        fontWeight = FontWeight.Bold,
+                        color = WhiteText
+                    )
+                },
+                actions = {
+                    IconButton(onClick = { navigationActions.navigateToSettings() }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = WhiteText
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = DarkNavyBackground
+                )
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navigationActions.navigateToNoteEditor() },
+                containerColor = BlueAccent,
+                contentColor = WhiteText,
+                modifier = Modifier.size(if (actualIsTablet) 64.dp else 56.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Note",
+                    modifier = Modifier.size(if (actualIsTablet) 28.dp else 24.dp)
+                )
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = horizontalPadding)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Search Bar - Using OutlinedTextField instead of SearchBar to avoid overlap issues
+            OutlinedTextField(
+                value = mockUiState.value.searchText,
+                onValueChange = { 
+                    mockUiState.value = mockUiState.value.copy(searchText = it)
+                },
+                placeholder = {
+                    Text(
+                        text = "Search notes",
+                        color = LightGrayText,
+                        fontSize = if (actualIsTablet) 18.sp else 16.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = LightGrayText
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF2D3748),
+                    unfocusedContainerColor = Color(0xFF2D3748),
+                    focusedTextColor = WhiteText,
+                    unfocusedTextColor = WhiteText,
+                    cursorColor = BlueAccent,
+                    focusedBorderColor = BlueAccent,
+                    unfocusedBorderColor = Color.Transparent
+                ),
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (actualIsTablet) 64.dp else 56.dp),
+                singleLine = true
+            )
+            
+            Spacer(modifier = Modifier.height(if (actualIsTablet) 32.dp else 28.dp))
+            
+            // Filter Tabs
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                item {
+                    FilterTabChip(
+                        text = "All",
+                        selected = mockUiState.value.selectedTab == FilterTab.ALL,
+                        onClick = { 
+                            mockUiState.value = mockUiState.value.copy(selectedTab = FilterTab.ALL)
+                        },
+                        isTablet = actualIsTablet
+                    )
+                }
+                item {
+                    FilterTabChip(
+                        text = "Starred",
+                        selected = mockUiState.value.selectedTab == FilterTab.STARRED,
+                        onClick = { 
+                            mockUiState.value = mockUiState.value.copy(selectedTab = FilterTab.STARRED)
+                        },
+                        isTablet = actualIsTablet
+                    )
+                }
+                item {
+                    FilterTabChip(
+                        text = "AI-Summarized",
+                        selected = mockUiState.value.selectedTab == FilterTab.AI_SUMMARIZED,
+                        onClick = { 
+                            mockUiState.value = mockUiState.value.copy(selectedTab = FilterTab.AI_SUMMARIZED)
+                        },
+                        isTablet = actualIsTablet
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Notes List
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(filteredNotes) { note ->
+                    NoteCard(
+                        note = note,
+                        onClick = { navigationActions.navigateToNoteDetails(note.id) },
+                        isTablet = actualIsTablet
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Home Screen - Phone")
 @Composable
 private fun HomeScreenPreview() {
     AINotesTheme {
-        // Create a mock NavigationActions for preview
-        HomeScreen(
+        PreviewHomeScreen(
             navigationActions = object : NavigationActions {
                 override fun navigateToHome() {}
                 override fun navigateToOnboarding() {}
@@ -364,5 +552,88 @@ private fun HomeScreenPreview() {
                 override fun navigateToSearch() {}
             }
         )
+    }
+}
+
+@Preview(showBackground = true, name = "Home Screen - Tablet", widthDp = 800, heightDp = 1280)
+@Composable
+private fun HomeScreenTabletPreview() {
+    AINotesTheme {
+        PreviewHomeScreen(
+            navigationActions = object : NavigationActions {
+                override fun navigateToHome() {}
+                override fun navigateToOnboarding() {}
+                override fun navigateBack(): Boolean = false
+                override fun navigateUp(): Boolean = false
+                override fun navigateToNoteEditor(noteId: String?) {}
+                override fun navigateToNoteDetails(noteId: String) {}
+                override fun navigateToSettings() {}
+                override fun navigateToSearch() {}
+            },
+            isTablet = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Note Card - Phone", widthDp = 360)
+@Composable
+private fun NoteCardPreview() {
+    AINotesTheme {
+        NoteCard(
+            note = sampleNotes.first(),
+            onClick = {},
+            isTablet = false
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Note Card - Tablet", widthDp = 800)
+@Composable
+private fun NoteCardTabletPreview() {
+    AINotesTheme {
+        NoteCard(
+            note = sampleNotes.first(),
+            onClick = {},
+            isTablet = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Filter Tabs", widthDp = 360)
+@Composable
+private fun FilterTabsPreview() {
+    AINotesTheme {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkNavyBackground)
+                .padding(16.dp)
+        ) {
+            item {
+                FilterTabChip(
+                    text = "All",
+                    selected = true,
+                    onClick = {},
+                    isTablet = false
+                )
+            }
+            item {
+                FilterTabChip(
+                    text = "Starred",
+                    selected = false,
+                    onClick = {},
+                    isTablet = false
+                )
+            }
+            item {
+                FilterTabChip(
+                    text = "AI-Summarized",
+                    selected = false,
+                    onClick = {},
+                    isTablet = false
+                )
+            }
+        }
     }
 }

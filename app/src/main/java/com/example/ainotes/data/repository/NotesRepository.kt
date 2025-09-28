@@ -1,6 +1,6 @@
 package com.example.ainotes.data.repository
 
-import com.example.ainotes.screens.Note
+import com.example.ainotes.data.Note
 import kotlinx.coroutines.flow.Flow
 
 interface NotesRepository {

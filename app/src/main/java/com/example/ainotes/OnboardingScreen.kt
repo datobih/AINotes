@@ -443,7 +443,7 @@ private fun WelcomeContent(
         
         // Get Started Button
         Button(
-            onClick = onGetStartedClick,
+            onClick = {onGetStartedClick()},
             modifier = Modifier
                 .fillMaxWidth()
                 .height(if (isCompact) 48.dp else 56.dp),
