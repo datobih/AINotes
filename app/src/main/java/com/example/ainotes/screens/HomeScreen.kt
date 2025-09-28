@@ -32,38 +32,53 @@ import com.example.ainotes.data.Note
 import com.example.ainotes.navigation.NavigationActions
 import com.example.ainotes.ui.theme.*
 
+// Utility function to format timestamp
+private fun formatTimestamp(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    
+    return when {
+        diff < 60_000 -> "Just now"
+        diff < 3600_000 -> "${diff / 60_000}m"
+        diff < 86400_000 -> "${diff / 3600_000}h"
+        diff < 604800_000 -> "${diff / 86400_000}d"
+        diff < 2628000_000 -> "${diff / 604800_000}w"
+        else -> "${diff / 2628000_000}m"
+    }
+}
+
 // Sample data
 private val sampleNotes = listOf(
     Note(
         id = "1",
         title = "Meeting Notes: Project Alpha",
         content = "AI-generated summary of the meeting, focusing on key decisions and action items assigned to...",
-        timestamp = "2d",
+        timestamp = System.currentTimeMillis() - 172800000L, // 2 days ago
         isAiSummarized = true
     ),
     Note(
         id = "2",
         title = "App Feature Ideas",
         content = "Brainstorming session for new app features, including voice-to-text improvements,...",
-        timestamp = "1w"
+        timestamp = System.currentTimeMillis() - 604800000L // 1 week ago
     ),
     Note(
         id = "3",
         title = "Weekly Groceries",
         content = "Milk, bread, eggs, apples, chicken breast, spinach, olive oil, and quinoa. Remember to...",
-        timestamp = "2w"
+        timestamp = System.currentTimeMillis() - 1209600000L // 2 weeks ago
     ),
     Note(
         id = "4",
         title = "Marketing Campaign Ideas",
         content = "Ideas for the upcoming marketing campaign: influencer collaborations, social media contest,...",
-        timestamp = "1m"
+        timestamp = System.currentTimeMillis() - 2628000000L // 1 month ago
     ),
     Note(
         id = "5",
         title = "User Research Insights",
         content = "Key takeaways from user interviews: users want better organization tools and more export...",
-        timestamp = "2m"
+        timestamp = System.currentTimeMillis() - 5256000000L // 2 months ago
     )
 )
 
@@ -315,7 +330,7 @@ private fun NoteCard(
                 )
                 
                 Text(
-                    text = note.timestamp,
+                    text = formatTimestamp(note.timestamp),
                     fontSize = if (isTablet) 16.sp else 14.sp,
                     color = LightGrayText,
                     modifier = Modifier.padding(start = 8.dp)
