@@ -8,6 +8,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.example.ainotes.OnboardingScreen
 import com.example.ainotes.screens.HomeScreen
+import com.example.ainotes.screens.NoteEditorScreen
 
 /**
  * Navigation graph configuration following SOLID principles:
@@ -170,16 +171,6 @@ fun AINotesNavGraph(
 
 // Placeholder composables for screens that don't exist yet
 // These will be replaced with actual screen implementations
-
-@Composable
-private fun HomeScreen(navigationActions: NavigationActions) {
-    // Placeholder - will be implemented later
-}
-
-@Composable
-private fun NoteEditorScreen(noteId: String?, navigationActions: NavigationActions) {
-    // Placeholder - will be implemented later
-}
 
 @Composable
 private fun NoteDetailsScreen(noteId: String, navigationActions: NavigationActions) {

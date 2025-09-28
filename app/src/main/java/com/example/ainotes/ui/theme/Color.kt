@@ -11,7 +11,8 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // Onboarding Screen Colors
-val DarkNavyBackground = Color(0xFF1E293B)
+val DarkNavyBackground = Color(0xFF1A202C)  // Darker background to match design
 val BlueAccent = Color(0xFF3B82F6)
 val WhiteText = Color(0xFFFFFFFF)
 val LightGrayText = Color(0xFFCBD5E1)
+val DarkGrayText = Color(0xFF9CA3AF)  // For title labels

@@ -165,11 +165,20 @@ class NotesRepositoryIntegrationTest {
         // Given
         val note = Note("concurrent", "Concurrent Test", "Content", 12345L, false, false)
         
-        // When - perform multiple operations
+        // When - perform multiple operations with cumulative updates
         repository.insertNote(note)
-        repository.updateNote(note.copy(title = "Updated Title"))
-        repository.updateNote(note.copy(content = "Updated Content"))
-        repository.updateNote(note.copy(isStarred = true))
+        
+        var currentNote = repository.getNoteById("concurrent")!!
+        currentNote = currentNote.copy(title = "Updated Title")
+        repository.updateNote(currentNote)
+        
+        currentNote = repository.getNoteById("concurrent")!!
+        currentNote = currentNote.copy(content = "Updated Content")
+        repository.updateNote(currentNote)
+        
+        currentNote = repository.getNoteById("concurrent")!!
+        currentNote = currentNote.copy(isStarred = true)
+        repository.updateNote(currentNote)
         
         // Then
         val finalNote = repository.getNoteById("concurrent")
