@@ -3,7 +3,7 @@ package com.example.ainotes.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ainotes.data.Note
-import com.example.ainotes.data.repository.NotesRepository
+import com.example.ainotes.domain.usecase.NotesUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NoteEditorViewModel @Inject constructor(
-    private val notesRepository: NotesRepository
+    private val notesUseCases: NotesUseCases
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NoteEditorUiState())
@@ -33,7 +33,7 @@ class NoteEditorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-                val note = notesRepository.getNoteById(noteId)
+                val note = notesUseCases.getNoteById(noteId)
                 if (note != null) {
                     _uiState.value = _uiState.value.copy(
                         noteId = note.id,
@@ -89,7 +89,7 @@ class NoteEditorViewModel @Inject constructor(
                     )
                 } else {
                     // Update existing note
-                    val existingNote = notesRepository.getNoteById(currentState.noteId!!)
+                    val existingNote = notesUseCases.getNoteById(currentState.noteId!!)
                     existingNote?.copy(
                         title = currentState.title.ifBlank { "Untitled" },
                         content = currentState.content,
@@ -98,9 +98,9 @@ class NoteEditorViewModel @Inject constructor(
                 }
 
                 if (currentState.isNewNote) {
-                    notesRepository.insertNote(note)
+                    notesUseCases.insertNote(note)
                 } else {
-                    notesRepository.updateNote(note)
+                    notesUseCases.updateNote(note)
                 }
 
                 _uiState.value = currentState.copy(

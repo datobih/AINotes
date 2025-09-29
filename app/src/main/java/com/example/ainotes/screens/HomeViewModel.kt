@@ -3,7 +3,7 @@ package com.example.ainotes.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ainotes.data.Note
-import com.example.ainotes.data.repository.NotesRepository
+import com.example.ainotes.domain.usecase.NotesUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val notesRepository: NotesRepository
+    private val notesUseCases: NotesUseCases
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -25,7 +25,7 @@ class HomeViewModel @Inject constructor(
 
     private fun loadNotes() {
         viewModelScope.launch {
-            notesRepository.getAllNotes().collect { notes ->
+            notesUseCases.getAllNotes().collect { notes ->
                 _uiState.value = _uiState.value.copy(
                     notes = notes,
                     isLoading = false
@@ -44,7 +44,7 @@ class HomeViewModel @Inject constructor(
 
     fun deleteNote(noteId: String) {
         viewModelScope.launch {
-            notesRepository.deleteNote(noteId)
+            notesUseCases.deleteNote(noteId)
         }
     }
 }
