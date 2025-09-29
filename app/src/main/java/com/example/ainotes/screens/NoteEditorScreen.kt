@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.speech.RecognizerIntent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import com.example.ainotes.ui.theme.DarkGrayText
 import com.example.ainotes.ui.theme.DarkNavyBackground
 import com.example.ainotes.ui.theme.WhiteText
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * Note Editor Screen for creating and editing notes
@@ -73,6 +75,43 @@ fun NoteEditorScreen(
     var showPermissionRationale by remember { mutableStateOf(false) }
     val recordAudioPermission = Manifest.permission.RECORD_AUDIO
 
+
+
+    val speechRecognizerLauncher  = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()){
+        result->
+
+        when (result.resultCode) {
+            Activity.RESULT_OK -> {
+                val spokenTextList = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                val spokenText = spokenTextList?.get(0) ?: ""
+                viewModel.updateContent(spokenText)
+                viewModel.clearError()
+            }
+            Activity.RESULT_CANCELED -> {
+
+                val errorMessage = "Speech recognition was cancelled"
+                viewModel.setError(errorMessage)
+            }
+            else -> {
+
+                val errorMessage = "Speech recognition failed"
+                viewModel.setError(errorMessage)
+            }
+        }
+
+    }
+
+    fun startSpeechRecognition() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something...")
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+
+        speechRecognizerLauncher.launch(intent)
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -81,6 +120,7 @@ fun NoteEditorScreen(
                 snackbarHostState.showSnackbar(
                     message = "Microphone permission granted. Voice recording will start when available."
                 )
+                startSpeechRecognition()
             }
         } else {
             val activity = context.findActivity()
@@ -120,6 +160,7 @@ fun NoteEditorScreen(
                     snackbarHostState.showSnackbar(
                         message = "Voice recording will start when available."
                     )
+                    startSpeechRecognition()
                 }
             }
 

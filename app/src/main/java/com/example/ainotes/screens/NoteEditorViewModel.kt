@@ -120,6 +120,12 @@ class NoteEditorViewModel @Inject constructor(
         }
     }
 
+    fun setError(message:String){
+        _uiState.value = _uiState.value.copy(error = message)
+    }
+
+
+
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }
