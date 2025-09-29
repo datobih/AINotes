@@ -1,5 +1,15 @@
 package com.example.ainotes.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,20 +20,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.Dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ainotes.R
@@ -33,6 +45,7 @@ import com.example.ainotes.ui.theme.BlueAccent
 import com.example.ainotes.ui.theme.DarkGrayText
 import com.example.ainotes.ui.theme.DarkNavyBackground
 import com.example.ainotes.ui.theme.WhiteText
+import kotlinx.coroutines.launch
 
 /**
  * Note Editor Screen for creating and editing notes
@@ -53,6 +66,77 @@ fun NoteEditorScreen(
     val screenHeight = configuration.screenHeightDp.dp
     val isTablet = screenWidth >= 600.dp
     val isLandscape = screenWidth > screenHeight
+
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    var showPermissionRationale by remember { mutableStateOf(false) }
+    val recordAudioPermission = Manifest.permission.RECORD_AUDIO
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "Microphone permission granted. Voice recording will start when available."
+                )
+            }
+        } else {
+            val activity = context.findActivity()
+            val shouldShowRationale = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    it,
+                    recordAudioPermission
+                )
+            } ?: false
+
+            coroutineScope.launch {
+                if (shouldShowRationale) {
+                    snackbarHostState.showSnackbar(
+                        message = "Microphone permission is required to record voice notes."
+                    )
+                } else {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Microphone permission denied. Enable it in settings to use voice recording.",
+                        actionLabel = "Settings",
+                        withDismissAction = true
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        context.openAppSettings()
+                    }
+                }
+            }
+        }
+    }
+
+    val onMicrophoneClick: () -> Unit = {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                recordAudioPermission
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Voice recording will start when available."
+                    )
+                }
+            }
+
+            context.findActivity()?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    it,
+                    recordAudioPermission
+                )
+            } == true -> {
+                showPermissionRationale = true
+            }
+
+            else -> {
+                permissionLauncher.launch(recordAudioPermission)
+            }
+        }
+    }
 
     val horizontalPadding = when {
         isTablet -> if (isLandscape) screenWidth * 0.12f else screenWidth * 0.08f
@@ -113,6 +197,9 @@ fun NoteEditorScreen(
             .fillMaxSize()
             .background(DarkNavyBackground),
         containerColor = DarkNavyBackground,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -248,7 +335,7 @@ fun NoteEditorScreen(
             
             // Floating Microphone Button
             FloatingActionButton(
-                onClick = { /* TODO: Implement voice recording */ },
+                onClick = onMicrophoneClick,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = fabBottomPadding)
@@ -263,6 +350,37 @@ fun NoteEditorScreen(
                 )
             }
         }
+    }
+
+    if (showPermissionRationale) {
+        AlertDialog(
+            onDismissRequest = { showPermissionRationale = false },
+            title = {
+                Text(text = "Microphone permission required", color = WhiteText)
+            },
+            text = {
+                Text(
+                    text = "AINotes needs access to your microphone so you can record voice notes.",
+                    color = WhiteText.copy(alpha = 0.8f)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionRationale = false
+                        permissionLauncher.launch(recordAudioPermission)
+                    }
+                ) {
+                    Text("Allow", color = BlueAccent)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionRationale = false }) {
+                    Text("Not now", color = WhiteText)
+                }
+            },
+            containerColor = DarkNavyBackground
+        )
     }
 }
 
@@ -341,4 +459,20 @@ private fun NoteInputField(
             }
         }
     )
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+private fun Context.openAppSettings() {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", packageName, null)
+    ).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    startActivity(intent)
 }
