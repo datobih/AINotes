@@ -1,5 +1,7 @@
 package com.example.ainotes.screens
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ainotes.data.Note
@@ -38,7 +40,10 @@ class NoteEditorViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         noteId = note.id,
                         title = note.title,
-                        content = note.content,
+                        contentField = TextFieldValue(
+                            text = note.content,
+                            selection = TextRange(note.content.length)
+                        ),
                         isLoading = false,
                         isNewNote = false
                     )
@@ -61,15 +66,48 @@ class NoteEditorViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(title = title)
     }
 
-    fun updateContent(content: String) {
-        _uiState.value = _uiState.value.copy(content = content)
+    fun updateContentField(contentField: TextFieldValue) {
+        _uiState.value = _uiState.value.copy(contentField = contentField)
+    }
+
+    fun replaceSelectedTextWithSpeech(spokenText: String) {
+        val currentField = _uiState.value.contentField
+        val currentText = currentField.text
+        val selection = currentField.selection
+        
+        val newText = if (selection.start != selection.end) {
+            // Replace selected text
+            currentText.replaceRange(selection.start, selection.end, spokenText)
+        } else {
+            // No selection - append to existing content
+            if (currentText.isNotEmpty()) {
+                "$currentText $spokenText"
+            } else {
+                spokenText
+            }
+        }
+        
+        val newCursorPosition = if (selection.start != selection.end) {
+            // Place cursor at end of inserted text
+            selection.start + spokenText.length
+        } else {
+            // Place cursor at end
+            newText.length
+        }
+        
+        _uiState.value = _uiState.value.copy(
+            contentField = TextFieldValue(
+                text = newText,
+                selection = TextRange(newCursorPosition)
+            )
+        )
     }
 
     fun saveNote(onSaveComplete: (Boolean) -> Unit = {}) {
         val currentState = _uiState.value
         
         // Validate input
-        if (currentState.title.isBlank() && currentState.content.isBlank()) {
+        if (currentState.title.isBlank() && currentState.contentField.text.isBlank()) {
             _uiState.value = currentState.copy(error = "Please enter a title or content")
             onSaveComplete(false)
             return
@@ -84,7 +122,7 @@ class NoteEditorViewModel @Inject constructor(
                     Note(
                         id = UUID.randomUUID().toString(),
                         title = currentState.title.ifBlank { "Untitled" },
-                        content = currentState.content,
+                        content = currentState.contentField.text,
                         timestamp = System.currentTimeMillis()
                     )
                 } else {
@@ -92,7 +130,7 @@ class NoteEditorViewModel @Inject constructor(
                     val existingNote = notesUseCases.getNoteById(currentState.noteId!!)
                     existingNote?.copy(
                         title = currentState.title.ifBlank { "Untitled" },
-                        content = currentState.content,
+                        content = currentState.contentField.text,
                         timestamp = System.currentTimeMillis()
                     ) ?: throw IllegalStateException("Note not found for update")
                 }
@@ -134,7 +172,7 @@ class NoteEditorViewModel @Inject constructor(
 data class NoteEditorUiState(
     val noteId: String? = null,
     val title: String = "",
-    val content: String = "",
+    val contentField: TextFieldValue = TextFieldValue(""),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isNewNote: Boolean = true,

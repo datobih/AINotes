@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -84,7 +85,7 @@ fun NoteEditorScreen(
             Activity.RESULT_OK -> {
                 val spokenTextList = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                 val spokenText = spokenTextList?.get(0) ?: ""
-                viewModel.updateContent(spokenText)
+                viewModel.replaceSelectedTextWithSpeech(spokenText)
                 viewModel.clearError()
             }
             Activity.RESULT_CANCELED -> {
@@ -343,9 +344,9 @@ fun NoteEditorScreen(
 
 
 
-                    NoteInputField(
-                        value = uiState.content,
-                        onValueChange = { viewModel.updateContent(it) },
+                    NoteInputFieldWithSelection(
+                        value = uiState.contentField,
+                        onValueChange = { viewModel.updateContentField(it) },
                         placeholder = "Start writing or speaking...",
                         modifier = Modifier
                             .fillMaxWidth()
@@ -490,6 +491,43 @@ private fun NoteInputField(
         decorationBox = { innerTextField ->
             Box {
                 if (value.isEmpty()) {
+                    Text(
+                        text = placeholder,
+                        style = textStyle,
+                        color = placeholderColor
+                    )
+                }
+                innerTextField()
+            }
+        }
+    )
+}
+
+@Composable
+private fun NoteInputFieldWithSelection(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle,
+    singleLine: Boolean,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    minLines: Int = 1,
+    placeholderColor: Color = DarkGrayText
+) {
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        textStyle = textStyle,
+        singleLine = singleLine,
+        minLines = minLines,
+        maxLines = if (singleLine) 1 else Int.MAX_VALUE,
+        keyboardOptions = keyboardOptions,
+        cursorBrush = SolidColor(BlueAccent),
+        decorationBox = { innerTextField ->
+            Box {
+                if (value.text.isEmpty()) {
                     Text(
                         text = placeholder,
                         style = textStyle,
