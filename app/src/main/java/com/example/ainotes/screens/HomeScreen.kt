@@ -254,7 +254,7 @@ fun HomeScreen(
                 items(filteredNotes) { note ->
                     NoteCard(
                         note = note,
-                        onClick = { navigationActions.navigateToNoteDetails(note.id) },
+                        onClick = { navigationActions.navigateToNoteEditor(note.id) },
                         isTablet = isTablet
                     )
                 }
@@ -542,7 +542,7 @@ private fun PreviewHomeScreen(
                 items(filteredNotes) { note ->
                     NoteCard(
                         note = note,
-                        onClick = { navigationActions.navigateToNoteDetails(note.id) },
+                        onClick = { navigationActions.navigateToNoteEditor(note.id) },
                         isTablet = actualIsTablet
                     )
                 }

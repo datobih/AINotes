@@ -13,6 +13,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -374,23 +375,56 @@ fun NoteEditorScreen(
                     }
                 }
             }
-            
-            // Floating Microphone Button
-            FloatingActionButton(
-                onClick = onMicrophoneClick,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = fabBottomPadding)
-                    .size(fabSize),
-                containerColor = BlueAccent,
-                contentColor = Color.White
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.mic_24dp),
-                    contentDescription = "Voice Recording",
-                    modifier = Modifier.size(fabIconSize)
-                )
-            }
+
+      Row(
+          modifier = Modifier
+              .fillMaxWidth()
+              .align(Alignment.BottomCenter)
+              .padding(bottom = fabBottomPadding),
+          horizontalArrangement = Arrangement.Center,
+          verticalAlignment = Alignment.CenterVertically
+      ) {
+          // Summarize Button
+          Button(
+              onClick = { /* TODO: Implement summarize functionality */ },
+              modifier = Modifier
+                  .padding(end = 16.dp),
+              shape = RoundedCornerShape(24.dp),
+              colors = ButtonDefaults.buttonColors(
+                  containerColor = Color(0xFF2D3748),
+                  contentColor = WhiteText
+              ),
+              contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+          ) {
+              Icon(
+                  painter = painterResource(id = R.drawable.auto_awesome_24dp),
+                  contentDescription = "Summarize",
+                  modifier = Modifier.size(20.dp),
+                  tint = WhiteText
+              )
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                  text = "Summarize",
+                  style = MaterialTheme.typography.labelLarge,
+                  color = WhiteText
+              )
+          }
+          
+          // Floating Microphone Button
+          FloatingActionButton(
+              onClick = onMicrophoneClick,
+              modifier = Modifier.size(fabSize),
+              containerColor = BlueAccent,
+              contentColor = Color.White
+          ) {
+              Icon(
+                  painter = painterResource(id = R.drawable.mic_24dp),
+                  contentDescription = "Voice Recording",
+                  modifier = Modifier.size(fabIconSize)
+              )
+          }
+      }
+
         }
     }
 
