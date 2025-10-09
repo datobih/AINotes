@@ -565,6 +565,7 @@ private fun HomeScreenPreview() {
                 override fun navigateToNoteDetails(noteId: String) {}
                 override fun navigateToSettings() {}
                 override fun navigateToSearch() {}
+                override fun navigateToSummary(noteId: String) {}
             }
         )
     }
@@ -584,6 +585,7 @@ private fun HomeScreenTabletPreview() {
                 override fun navigateToNoteDetails(noteId: String) {}
                 override fun navigateToSettings() {}
                 override fun navigateToSearch() {}
+                override fun navigateToSummary(noteId: String) {}
             },
             isTablet = true
         )
