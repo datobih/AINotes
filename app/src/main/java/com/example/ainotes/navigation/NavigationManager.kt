@@ -46,6 +46,10 @@ class NavigationManager(
                     // Note: This requires a noteId, should be called through specific method
                     throw IllegalArgumentException("NoteDetails requires noteId parameter")
                 }
+                is NavigationDestinations.Summary -> {
+                    // Note: This requires a noteId, should be called through specific method
+                    throw IllegalArgumentException("Summary requires noteId parameter")
+                }
             }
         }
     }
@@ -62,6 +66,13 @@ class NavigationManager(
      */
     fun navigateToNoteEditor(noteId: String? = null) {
         navigationActions.navigateToNoteEditor(noteId)
+    }
+    
+    /**
+     * Navigate to summary screen with specific note ID
+     */
+    fun navigateToSummary(noteId: String) {
+        navigationActions.navigateToSummary(noteId)
     }
     
     /**

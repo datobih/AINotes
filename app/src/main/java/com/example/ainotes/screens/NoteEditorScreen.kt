@@ -386,7 +386,20 @@ fun NoteEditorScreen(
       ) {
           // Summarize Button
           Button(
-              onClick = { /* TODO: Implement summarize functionality */ },
+              onClick = {
+                  // Save the note first, then navigate to summary
+                  viewModel.saveNote { success ->
+                      if (success && uiState.noteId != null) {
+                          navigationActions.navigateToSummary(uiState.noteId!!)
+                      } else {
+                          coroutineScope.launch {
+                              snackbarHostState.showSnackbar(
+                                  message = "Please save the note first before summarizing"
+                              )
+                          }
+                      }
+                  }
+              },
               modifier = Modifier
                   .padding(end = 16.dp),
               shape = RoundedCornerShape(24.dp),
@@ -475,6 +488,7 @@ private fun NoteEditorScreenPreview() {
                 override fun navigateToNoteDetails(noteId: String) {}
                 override fun navigateToSettings() {}
                 override fun navigateToSearch() {}
+                override fun navigateToSummary(noteId: String) {}
             }
         )
     }
@@ -495,6 +509,7 @@ private fun NoteEditorScreenEditModePreview() {
                 override fun navigateToNoteDetails(noteId: String) {}
                 override fun navigateToSettings() {}
                 override fun navigateToSearch() {}
+                override fun navigateToSummary(noteId: String) {}
             }
         )
     }

@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import com.example.ainotes.OnboardingScreen
 import com.example.ainotes.screens.HomeScreen
 import com.example.ainotes.screens.NoteEditorScreen
+import com.example.ainotes.screens.SummaryScreen
 
 /**
  * Navigation graph configuration following SOLID principles:
@@ -98,6 +99,23 @@ fun AINotesNavGraph(
                 navigationActions = navigationActions
             )
         }
+
+        // Summary Screen (with required noteId parameter)
+        composable(
+            route = "${NavigationDestinations.Summary.route}/{${NavigationDestinations.Summary.NOTE_ID_ARG}}",
+            arguments = listOf(
+                navArgument(NavigationDestinations.Summary.NOTE_ID_ARG) {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString(NavigationDestinations.Summary.NOTE_ID_ARG) 
+                ?: error("Note ID is required for Summary screen")
+            SummaryScreen(
+                noteId = noteId,
+                navigationActions = navigationActions
+            )
+        }
     }
 }
 
@@ -162,6 +180,20 @@ fun AINotesNavGraph(
 
         composable(route = NavigationDestinations.Search.route) {
             SearchScreen(navigationActions = navigationActions)
+        }
+
+        // Summary Screen (with required noteId parameter)
+        composable(
+            route = "${NavigationDestinations.Summary.route}/{${NavigationDestinations.Summary.NOTE_ID_ARG}}",
+            arguments = listOf(
+                navArgument(NavigationDestinations.Summary.NOTE_ID_ARG) {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString(NavigationDestinations.Summary.NOTE_ID_ARG)
+                ?: error("Note ID is required for Summary screen")
+            SummaryScreen(noteId = noteId, navigationActions = navigationActions)
         }
     }
 

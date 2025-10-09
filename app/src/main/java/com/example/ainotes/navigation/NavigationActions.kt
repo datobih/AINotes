@@ -24,6 +24,7 @@ interface BasicNavigationActions {
 interface NoteNavigationActions {
     fun navigateToNoteEditor(noteId: String? = null)
     fun navigateToNoteDetails(noteId: String)
+    fun navigateToSummary(noteId: String)
 }
 
 /**
@@ -77,6 +78,11 @@ class NavigationActionsImpl(
 
     override fun navigateToNoteDetails(noteId: String) {
         val route = NavigationDestinations.NoteDetails.createRoute(noteId)
+        navController.navigate(route)
+    }
+
+    override fun navigateToSummary(noteId: String) {
+        val route = NavigationDestinations.Summary.createRoute(noteId)
         navController.navigate(route)
     }
 

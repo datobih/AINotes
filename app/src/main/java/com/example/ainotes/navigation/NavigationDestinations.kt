@@ -54,6 +54,15 @@ sealed class NavigationDestinations(val route: String) {
      */
     data object Search : NavigationDestinations("search")
     
+    /**
+     * Summary screen for AI-generated note summaries
+     * @param noteId Required note ID to summarize
+     */
+    data object Summary : NavigationDestinations("summary") {
+        const val NOTE_ID_ARG = "noteId"
+        fun createRoute(noteId: String): String = "$route/$noteId"
+    }
+    
     companion object
 }
 
@@ -68,6 +77,7 @@ fun NavigationDestinations.Companion.getAllDestinations(): List<NavigationDestin
         NavigationDestinations.NoteEditor,
         NavigationDestinations.NoteDetails,
         NavigationDestinations.Settings,
-        NavigationDestinations.Search
+        NavigationDestinations.Search,
+        NavigationDestinations.Summary
     )
 }
